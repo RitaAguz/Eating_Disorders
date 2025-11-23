@@ -343,3 +343,159 @@ head(df_salud_all)
 print(paste("Número total de filas en el dataframe combinado:", nrow(df_salud_all)))
 str(df_salud_all)
 ```
+
+## 5. Preparación de Variables Clave para los objetivos.
+
+### 5.1 Prevalencia de depresión y consumo de alcohol de los matriculados y egresados en Europa.
+
+Con esto tendremos una idea clara de en qué pais a nivel general se posee más niveles de prevalencia de la depresión de la comunidad universitaria y consumo de alcohol. Primero se hizo un gráfico de barras, donde se aprecia la información de forma resumida, mientras que además se añadieron los extras de un mapa interactivo de Europa (debido a que el mapa es geopolítico, hay territorios que técnicamente pertenecen a ese país de Europa, pero los vamos a ignorar)
+
+#### Depresión
+
+```{r}
+df_objetivo1 <- df_depresion_all %>%
+  filter(
+    hlth_pb %in% c("DPR", "Depressive symptoms"),
+    unit %in% c("PC", "Percentage")
+  ) %>%
+  group_by(country_code) %>%
+  summarise(prevalencia_media = mean(value, na.rm = TRUE)) %>%
+  mutate(country_name = countrycode(country_code,
+                                    origin = "eurostat",
+                                    destination = "country.name")) %>%
+  arrange(desc(prevalencia_media))
+
+
+```
+
+```{r}
+# Creación de plot interactivo
+ggplotly(
+  ggplot(df_objetivo1, aes(x = reorder(country_name, prevalencia_media),
+                         y = prevalencia_media)) +
+    geom_col(fill = "#49C0BC") +
+    coord_flip() +
+    labs(
+      title = "Prevalencia media de síntomas depresivos por país",
+      x = "País",
+      y = "Prevalencia Media (%)"
+    ) +
+    theme_minimal() +
+    theme(axis.text.y = element_text(size = 8))
+)
+```
+
+```{r}
+eu_shp <- get_eurostat_geospatial(
+  output_class = "sf",
+  resolution = "60",
+  nuts_level = "0"
+) %>%
+  select(geo, geometry)
+map_data <- eu_shp %>%
+  left_join(df_objetivo1, by = c("geo" = "country_code"))
+
+pal <- colorNumeric(
+  palette = "GnBu",
+  domain = map_data$prevalencia_media,
+  na.color = "#DCAC80"
+)
+
+leaflet(map_data) %>%
+  addTiles() %>%
+  addPolygons(
+    fillColor = ~pal(prevalencia_media),
+    weight = 1,
+    color = "#595380",
+    fillOpacity = 0.8,
+    smoothFactor = 0.5,
+    highlightOptions = highlightOptions(
+      weight = 2,
+      color = "black",
+      bringToFront = TRUE
+    ),
+    label = ~paste0(
+      "<strong>", country_name, "</strong>",
+      "<br>Prevalencia media: ",
+      round(prevalencia_media, 2), "%"
+    ) %>% lapply(htmltools::HTML)
+  ) %>%
+  addLegend(
+    pal = pal,
+    values = ~prevalencia_media,
+    title = "Prevalencia Depresión (%)",
+    opacity = 1
+  )
+
+```
+
+#### Consumo de alcohol
+
+```{r}
+df_objetivo1_alcohol <- df_alcohol_clean %>%
+  filter(
+    hlth_pb == "Alcohol consumption",
+    unit == "PC"
+  ) %>%
+  group_by(country_code) %>%
+  summarise(prevalencia_media_alcohol = mean(value, na.rm = TRUE)) %>%
+  mutate(country_name = countrycode(country_code,
+                                    origin = "eurostat",
+                                    destination = "country.name")) %>%
+  arrange(desc(prevalencia_media_alcohol))
+
+```
+```{r}
+ggplot(df_objetivo1_alcohol, aes(x = "", y = prevalencia_media_alcohol)) +
+  geom_jitter(width = 0.1, color = "#89A2B9", size = 3) +
+  labs(title = "Prevalencia de consumo crónico de alcohol en Europa",
+       y = "Prevalencia (%)", x = "") +
+  theme_minimal()
+
+```
+
+```{r}
+eu_shp <- get_eurostat_geospatial(
+  output_class = "sf",
+  resolution = "60",
+  nuts_level = "0"
+) %>%
+  select(geo, geometry)
+
+# Unir con los datos de alcohol
+map_data <- eu_shp %>%
+  left_join(df_objetivo1_alcohol, by = c("geo" = "country_code"))
+
+pal <- colorNumeric(
+  palette = "RdPu",
+  domain = map_data$prevalencia_media_alcohol,
+  na.color = "#83D2C5"
+)
+
+# Crear mapa
+leaflet(map_data) %>%
+  addTiles() %>%
+  addPolygons(
+    fillColor = ~pal(prevalencia_media_alcohol),
+    weight = 1,
+    color = "#595380",
+    fillOpacity = 0.8,
+    smoothFactor = 0.5,
+    highlightOptions = highlightOptions(
+      weight = 2,
+      color = "black",
+      bringToFront = TRUE
+    ),
+    label = ~paste0(
+      "<strong>", country_name, "</strong>",
+      "<br>Prevalencia media: ",
+      round(prevalencia_media_alcohol, 2), "%"
+    ) %>% lapply(htmltools::HTML)
+  ) %>%
+  addLegend(
+    pal = pal,
+    values = ~prevalencia_media_alcohol,
+    title = "Prevalencia Alcohol (%)",
+    opacity = 1
+  )
+```
