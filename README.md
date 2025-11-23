@@ -15,3 +15,4 @@ de estudiantes, esta etapa también significa elevados niveles de presión
 académica e incertidumbre sobre el futuro laboral. Todos estos factores 
 se combinan para generar un entorno que puede afectar de manera significativa 
 a la salud mental de los estudiantes derivando en conductas autodestructivas.
+
