@@ -699,5 +699,55 @@ plot_correlacion_alc_vol <- ggplot(
 ggplotly(plot_correlacion_alc_vol, tooltip = "text")
 ```
 
+## 6. Conclusiones y Discusión
+
+### 6.1 Conclusiones por Objetivo
+
+#### Objetivo 1: Prevalencia de Depresión y Consumo de Alcohol
+Se analizó la prevalencia media de síntomas depresivos y de consumo crónico de alcohol a nivel país en la población universitaria europea.
+
+* **Depresión:** Los países con la **mayor prevalencia media de síntomas depresivos** fueron **Portugal** (alrededor del 18.5%) y **Hungría** (alrededor del 17%), mientras que los valores más bajos se observaron en **Rumania** (alrededor del 6%) y **Chipre** (alrededor del 7%).
+* **Consumo de Alcohol:** La prevalencia de **consumo crónico de alcohol** fue notablemente mayor en países como **Dinamarca** (alrededor del 19.5%) e **Irlanda** (alrededor del 18%), y significativamente más baja en países como **Turquía** (alrededor del 2%) e **Italia** (alrededor del 3%).
+
+Estos resultados sugieren una **heterogeneidad** significativa en la salud mental y las conductas de riesgo entre los estudiantes universitarios de los distintos países europeos, lo que respalda la necesidad de un análisis desagregado.
+
+#### Objetivo 2: Correlación Conducta-Emocional (Depresión vs. Alcohol)
+
+El análisis de correlación de Pearson entre la prevalencia media de síntomas depresivos y la prevalencia de consumo crónico de alcohol a nivel país arrojó un resultado de:
+$$r = 0.170 \text{ con } p\text{-value} = 0.407$$
+* **Correlación:** El coeficiente de correlación ($r = 0.170$) indica una **correlación positiva, pero muy débil**.
+* **Significancia Estadística:** El $p\text{-value}$ $(0.407)$ es **mucho mayor** que el umbral de significancia común (0.05), lo que indica que **no hay evidencia suficiente para afirmar que la correlación es estadísticamente significativa** a nivel país.
+* **Interpretación:** A nivel ecológico (país), una mayor prevalencia media de depresión **no se asocia de manera significativa** con una mayor prevalencia media de consumo crónico de alcohol. Esto podría deberse a factores culturales (ej. la aceptación social del consumo de alcohol) o a la **falacia ecológica** (la correlación a nivel país no refleja la correlación a nivel individual).
+
+#### Objetivo 3: Relación con el Volumen de la Población Universitaria
+
+Se evaluó la relación entre el volumen total de la población universitaria (matriculados y egresados) y las prevalencias de depresión y consumo de alcohol.
+
+* **Volumen vs. Depresión:**
+    * Correlación: $$r = 0.089$$
+    * $p\text{-value}$: $$0.669$$
+    * **Conclusión:** La correlación es **extremadamente débil y no significativa**. El tamaño absoluto de la población universitaria de un país **no tiene una asociación lineal** con la prevalencia media de depresión.
+
+* **Volumen vs. Consumo de Alcohol:**
+    * Correlación: $$r = 0.021$$
+    * $p\text{-value}$: $$0.916$$
+    * **Conclusión:** La correlación es **prácticamente nula y no significativa**. El tamaño absoluto de la población universitaria de un país **no tiene una asociación lineal** con la prevalencia media de consumo de alcohol.
+
+### 6.2 Discusión General
+
+Este estudio, realizado bajo una **perspectiva ecológica** (análisis a nivel de país), ha demostrado que la relación entre la salud mental, el consumo de alcohol y el volumen universitario es **compleja y no lineal** en la Europa.
+
+1.  **Factores Subyacentes:** Los resultados no significativos del Objetivo 2 y 3 sugieren que las diferencias en las tasas de depresión y alcohol en Europa probablemente están impulsadas por **factores contextuales** específicos de cada país, como el **sistema de bienestar social, las normas culturales sobre el alcohol** y las **presiones del sistema educativo** (tal como se mencionó en la Introducción), en lugar de por una relación directa entre las dos variables de salud o por el volumen demográfico universitario.
+2.  **Limitación de la Perspectiva Ecológica:** La **falacia ecológica** es una limitación clave. Una correlación débil a nivel de país ($r=0.170$) no descarta una correlación significativa a nivel individual (es decir, los estudiantes deprimidos podrían, individualmente, consumir más alcohol).
+3.  **Necesidad de Datos Desagregados:** Para entender los factores que realmente influyen, se requeriría un análisis a nivel individual, integrando variables socioambientales específicas (estructura educativa, calidad de vida) con las encuestas de salud mental y conductas.
+
+### 6.3 Limitaciones del Estudio
+
+1.  **Naturaleza Ecológica:** El estudio está limitado por el nivel de agregación de los datos (país), lo que impide sacar conclusiones a nivel individual.
+2.  **Disponibilidad de Datos (Eurostat):**
+    * **Inconsistencia en el Tiempo:** La recopilación de datos de Eurostat para depresión se limitó al periodo 2014-2019, lo que no permite capturar el impacto de eventos recientes (como la pandemia de COVID-19) que han afectado significativamente la salud mental universitaria.
+    * **Definiciones de Población:** La población analizada abarca "población terciaria" (niveles ISCED 5-8, que incluyen egresados), lo que no se restringe estrictamente a "estudiantes universitarios" en el sentido más estricto, diluyendo potencialmente los efectos de la vida en el campus.
+3.  **Definición de Variables:** El consumo de alcohol se define como "consumo crónico" y no como "consumo problemático o excesivo", que podría ser una métrica más directamente relacionada con la salud mental.
+
 
 
