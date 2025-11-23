@@ -102,3 +102,244 @@ En 'visulización.R' se encuentran códigos cortos que enseñan pequeñas previa
 
 ### 4.4 Limpieza y preparación de datos.
 
+Aquí se van a realizar la limpieza y estandarización de los datos. De esta forma nos aseguramos de que estén preparados para ser analizados.
+
+Este paso es fundamental, ya que se eliminan las columnas innecesarias, se ordenan  filtran los datos adeemás de asegurarse que no haya demasiadas inconsistencias y los cálculos estadísticos no tengan demasiado margen de error. 
+
+En este paso se renombran algunas variables para mejor entendimiento o se crean otras, dependiendo de la necesidad.
+
+#### 4.4.1 Limpieza y estandarización de df_depresion_pais y df_depresion_edu
+
+Como las bases de datos realacionadas con la depresión solo difieren en si una está enfocada al pais mientras que la otra en educación, se ha decidido combinar ambos datasets para evitar posibles confusiones. 
+
+```{r}
+# 1. Limpieza y estandarización de df_depresion_pais
+# Lo nuevo es la culman isced
+
+df_depresion_pais_clean <- df_depresion_pais %>%
+  rename(
+    country_code = geo, # pais/region
+    year = time         # claridad
+  ) %>%
+  
+  # Añadir la columna de nivel educativo (isced) con valores NA es para unir los datasets.
+  mutate(isced = NA_character_) %>%
+  
+  # ordenar y seleccionar las columnas a mantener.
+  select(
+    year, country_code, 
+    sex, age, 
+    c_birth, isced, 
+    value, freq, 
+    hlth_pb, unit
+  )
+
+# 2. Limpieza y estandarización de df_depresion_edu
+# Lo nuevo es la columna c_birth
+
+df_depresion_edu_clean <- df_depresion_edu %>%
+  rename(
+    freq = "Time frequency",
+    unit = "Unit of measure",
+    isced = "International Standard Classification of Education (ISCED 2011)",
+    hlth_pb = "Health problems",
+    sex = "Sex",
+    age = "Age class",
+    country_name = "Geopolitical entity (reporting)",
+    year = "Time"
+  ) %>%
+  
+  # Añadir la columna de país de nacimiento (c_birth) con valores NA, es para unir los datasets
+  mutate(c_birth = NA_character_) %>%
+  
+  # Convertir el año a numérico (para coincidir con df_depresion_pais y evitar errores)
+  mutate(year = as.numeric(year)) %>%
+  
+  # Estandarizar el nombre de los países a códigos (geo) para la unión
+  mutate(
+    country_code = case_when(
+      # Casos especiales los creamos para poder agruparlo y luego quitarlos ya que pueden ser inconvenientes para el análisis
+      country_name == "European Union - 27 countries (from 2020)" ~ "EU27_2020",
+      country_name == "European Union - 28 countries (2013-2020)" ~ "EU28",
+      TRUE ~ countrycode(country_name, origin = 'country.name', destination = 'eurostat') # Se usa el paquete countrycode
+    )
+  ) %>%
+  
+  # ordenar y seleccionar las columnas a mantener.
+  select(
+    year, country_code, 
+    sex, age, 
+    c_birth, isced,
+    value, freq, 
+    hlth_pb, unit
+  )
+
+# 3. Combinación de los dataframes
+# Se utiliza bind_rows() ya que ambos dataframes tienen la misma estructura de columnas.
+
+df_depresion_all <- bind_rows(df_depresion_pais_clean, df_depresion_edu_clean)
+
+# 4. Aquí es donde eliminamos los casos especiales, una vez que ya tenemos el dataframe con absolutamente todos los datos, ya que es más facil eliminarlo si ya está todo asentado en un sitio.
+df_depresion_all <- df_depresion_all %>%
+  filter(!country_code %in% c("EU27_2020", "EU28"))
+
+# 5. Verificación de la estructura del dataframe combinado
+
+print("Primeras filas del dataframe de Depresión combinado:")
+head(df_depresion_all)
+print(paste("Número total de filas en el dataframe combinado:", nrow(df_depresion_all)))
+str(df_depresion_all)
+```
+
+#### 4.4.2 Limpieza y estandarización de df_egresados y df_matriculados
+
+```{r}
+# 1. Limpieza y estandarización de df_egresados (Egresados)
+df_egresados_clean <- df_egresados %>%
+  rename(
+    isced_field = "ISCED Fields of education and training (ISCED-F 2013)",
+    isced_level = "International Standard Classification of Education (ISCED 2011)",
+    sex = "Sex",
+    country_name = "Geopolitical entity (reporting)",
+    year = "Time",
+    value = "value"
+  ) %>%
+  
+  # Convertir el año a numérico para evitar conflictos futuros
+  mutate(year = as.numeric(year)) %>%
+  
+  # Estandarizar el nombre de los países a códigos (geo) para la unión
+  mutate(
+    country_code = case_when(
+      country_name == "European Union - 27 countries (from 2020)" ~ "EU27_2020",
+      country_name == "European Union - 28 countries (2013-2020)" ~ "EU28",
+      TRUE ~ countrycode(country_name, origin = 'country.name', destination = 'eurostat')
+    )
+  ) %>%
+  
+  # Crear una columna de rama académica simplificada (Clave para los objetivos)
+  mutate(
+    rama_academica = case_when(
+      str_detect(isced_field, "Health and welfare|Veterinary") ~ "Ciencias de la Salud",
+      str_detect(isced_field, "Engineering|Manufacturing|Construction") ~ "Ingeniería",
+      str_detect(isced_field, "Arts and humanities") ~ "Artes y Humanidades",
+      str_detect(isced_field, "Social sciences|Journalism|Information|Business|Administration|Law") ~ "Ciencias Sociales, Empresariales y Derecho",
+      str_detect(isced_field, "Natural sciences|Mathematics|Statistics|ICTs") ~ "Ciencias Naturales y TIC",
+      str_detect(isced_field, "Education") ~ "Educación",
+      str_detect(isced_field, "Services") ~ "Servicios",
+      str_detect(isced_field, "Agriculture|Forestry|Fisheries") ~ "Agricultura",
+      isced_field == "Total" ~ "Total",
+      TRUE ~ "Otras" # Para cualquier otra categoría que no se haya mapeado
+    )
+  ) %>%
+  
+  # ordenar y seleccionar las columnas a mantener.
+  select(
+    year, country_code, 
+    sex, isced_level, 
+    isced_field, rama_academica, 
+    value) %>%
+  
+  # Añadimos una columna para identificar el tipo de población
+  mutate(poblacion = "Egresados")
+
+# 2. Limpieza y estandarización de df_matriculados (Matriculados)
+# No tenemos la edad pero no pasa nada
+
+df_matriculados_clean <- df_matriculados %>%
+ rename(
+  isced_field = "ISCED Fields of education and training (ISCED-F 2013)",
+  isced_level = "International Standard Classification of Education (ISCED 2011)",
+  sex = "Sex",
+  country_name = "Geopolitical entity (reporting)",
+  year = "Time",
+  value = "value"
+ ) %>%
+  
+  # Convertir el año a numérico para evitar futuros problemas
+  mutate(year = as.numeric(year)) %>%
+  # Estandarizar el nombre de los países a códigos (geo) para la unión
+  mutate(
+    country_code = case_when(
+      country_name == "European Union - 27 countries (from 2020)" ~ "EU27_2020",
+      country_name == "European Union - 28 countries (2013-2020)" ~ "EU28",
+      TRUE ~ countrycode(country_name, origin = 'country.name', destination = 'eurostat')
+    )
+  ) %>%
+  
+  mutate(
+  rama_academica = case_when(
+   str_detect(isced_field, "Health and welfare|Veterinary") ~ "Ciencias de la Salud",
+   str_detect(isced_field, "Engineering|Manufacturing|Construction") ~ "Ingeniería",
+   str_detect(isced_field, "Arts and humanities") ~ "Artes y Humanidades",
+   str_detect(isced_field, "Social sciences|Journalism|Information|Business|Administration|Law") ~ "Ciencias Sociales, Empresariales y Derecho",
+   str_detect(isced_field, "Natural sciences|Mathematics|Statistics|ICTs") ~ "Ciencias Naturales y TIC",
+   str_detect(isced_field, "Education") ~ "Educación",
+   str_detect(isced_field, "Services") ~ "Servicios",
+   str_detect(isced_field, "Agriculture|Forestry|Fisheries") ~ "Agricultura",
+   isced_field == "Total" ~ "Total",
+   TRUE ~ "Otras" # Para cualquier otra categoría que no se haya mapeado
+  )
+ ) %>%
+  
+  # ordenar y seleccionar las columnas a mantener.
+  select(year, country_code, 
+         sex, isced_level, 
+         isced_field, rama_academica,
+         value) %>%
+  # Añadimos una columna para identificar el tipo de población
+  mutate(poblacion = "Matriculados")
+
+# 3. Aquí quitamos los carácteres especiales de antes
+df_egresados_clean <- df_egresados_clean %>%
+  filter(!country_code %in% c("EU27_2020", "EU28"))
+df_matriculados_clean <- df_matriculados_clean %>%
+  filter(!country_code %in% c("EU27_2020", "EU28"))
+
+# 4. Mostrar estructura y primeras filas
+print("Estructura de df_egresados_clean:")
+str(df_egresados_clean)
+print("Primeras filas de df_egresados_clean (Egresados):")
+head(df_egresados_clean)
+
+print("Estructura de df_matriculados_clean:")
+str(df_matriculados_clean)
+print("Primeras filas de df_matriculados_clean (Matriculados):")
+head(df_matriculados_clean)
+```
+
+#### 4.4.3 Limpieza y estandarización de df_alcohol_clean
+
+Se limpian los datos de consumo de alcohol además de unir la depresión y el alcohol en un dataset para la futura correlación en el objetivo 2.
+
+```{r}
+df_alcohol_clean <- df_alcohol %>%
+  rename(
+    year = time,
+    country_code = geo,
+    c_birth = citizen   # equivalente a "country of birth"
+  ) %>%
+  mutate(
+    isced = NA_character_,   # porque alcohol no tiene nivel educativo
+    hlth_pb = "Alcohol consumption"   # Para poder unir con depresión
+  ) %>%
+  select(
+    year, country_code,
+    sex, age,
+    c_birth, isced,
+    value, hlth_pb, unit
+  )
+
+
+# 4. Combinación de los dataframes de salud (Depresión + Alcohol)
+df_salud_all <- bind_rows(df_depresion_all, df_alcohol_clean)
+
+# 5. Eliminamos casos especiales y verificamos la estructura
+df_salud_all <- df_salud_all %>%
+  filter(!country_code %in% c("EU27_2020", "EU28"))
+
+print("Primeras filas del dataframe de SALUD combinado (Depresión + Alcohol):")
+head(df_salud_all)
+print(paste("Número total de filas en el dataframe combinado:", nrow(df_salud_all)))
+str(df_salud_all)
+```

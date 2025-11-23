@@ -532,6 +532,347 @@ Como no es algo especialmente relevante, no se va a poner en el
 </div>
 <div id="limpieza-y-preparación-de-datos." class="section level3">
 <h3>4.4 Limpieza y preparación de datos.</h3>
+<p>Aquí se van a realizar la limpieza y estandarización de los datos. De
+esta forma nos aseguramos de que estén preparados para ser
+analizados.</p>
+<p>Este paso es fundamental, ya que se eliminan las columnas
+innecesarias, se ordenan filtran los datos adeemás de asegurarse que no
+haya demasiadas inconsistencias y los cálculos estadísticos no tengan
+demasiado margen de error.</p>
+<p>En este paso se renombran algunas variables para mejor entendimiento
+o se crean otras, dependiendo de la necesidad.</p>
+<div id="limpieza-y-estandarización-de-df_depresion_pais-y-df_depresion_edu" class="section level4">
+<h4>4.4.1 Limpieza y estandarización de df_depresion_pais y
+df_depresion_edu</h4>
+<p>Como las bases de datos realacionadas con la depresión solo difieren
+en si una está enfocada al pais mientras que la otra en educación, se ha
+decidido combinar ambos datasets para evitar posibles confusiones.</p>
+<pre class="r"><code># 1. Limpieza y estandarización de df_depresion_pais
+# Lo nuevo es la culman isced
+
+df_depresion_pais_clean &lt;- df_depresion_pais %&gt;%
+  rename(
+    country_code = geo, # pais/region
+    year = time         # claridad
+  ) %&gt;%
+  
+  # Añadir la columna de nivel educativo (isced) con valores NA es para unir los datasets.
+  mutate(isced = NA_character_) %&gt;%
+  
+  # ordenar y seleccionar las columnas a mantener.
+  select(
+    year, country_code, 
+    sex, age, 
+    c_birth, isced, 
+    value, freq, 
+    hlth_pb, unit
+  )
+
+# 2. Limpieza y estandarización de df_depresion_edu
+# Lo nuevo es la columna c_birth
+
+df_depresion_edu_clean &lt;- df_depresion_edu %&gt;%
+  rename(
+    freq = &quot;Time frequency&quot;,
+    unit = &quot;Unit of measure&quot;,
+    isced = &quot;International Standard Classification of Education (ISCED 2011)&quot;,
+    hlth_pb = &quot;Health problems&quot;,
+    sex = &quot;Sex&quot;,
+    age = &quot;Age class&quot;,
+    country_name = &quot;Geopolitical entity (reporting)&quot;,
+    year = &quot;Time&quot;
+  ) %&gt;%
+  
+  # Añadir la columna de país de nacimiento (c_birth) con valores NA, es para unir los datasets
+  mutate(c_birth = NA_character_) %&gt;%
+  
+  # Convertir el año a numérico (para coincidir con df_depresion_pais y evitar errores)
+  mutate(year = as.numeric(year)) %&gt;%
+  
+  # Estandarizar el nombre de los países a códigos (geo) para la unión
+  mutate(
+    country_code = case_when(
+      # Casos especiales los creamos para poder agruparlo y luego quitarlos ya que pueden ser inconvenientes para el análisis
+      country_name == &quot;European Union - 27 countries (from 2020)&quot; ~ &quot;EU27_2020&quot;,
+      country_name == &quot;European Union - 28 countries (2013-2020)&quot; ~ &quot;EU28&quot;,
+      TRUE ~ countrycode(country_name, origin = &#39;country.name&#39;, destination = &#39;eurostat&#39;) # Se usa el paquete countrycode
+    )
+  ) %&gt;%
+  
+  # ordenar y seleccionar las columnas a mantener.
+  select(
+    year, country_code, 
+    sex, age, 
+    c_birth, isced,
+    value, freq, 
+    hlth_pb, unit
+  )</code></pre>
+<pre><code>## Warning: There was 1 warning in `mutate()`.
+## ℹ In argument: `country_code = case_when(...)`.
+## Caused by warning:
+## ! Some values were not matched unambiguously: European Union - 27 countries (from 2020), European Union - 28 countries (2013-2020)</code></pre>
+<pre class="r"><code># 3. Combinación de los dataframes
+# Se utiliza bind_rows() ya que ambos dataframes tienen la misma estructura de columnas.
+
+df_depresion_all &lt;- bind_rows(df_depresion_pais_clean, df_depresion_edu_clean)
+
+# 4. Aquí es donde eliminamos los casos especiales, una vez que ya tenemos el dataframe con absolutamente todos los datos, ya que es más facil eliminarlo si ya está todo asentado en un sitio.
+df_depresion_all &lt;- df_depresion_all %&gt;%
+  filter(!country_code %in% c(&quot;EU27_2020&quot;, &quot;EU28&quot;))
+
+# 5. Verificación de la estructura del dataframe combinado
+
+print(&quot;Primeras filas del dataframe de Depresión combinado:&quot;)</code></pre>
+<pre><code>## [1] &quot;Primeras filas del dataframe de Depresión combinado:&quot;</code></pre>
+<pre class="r"><code>head(df_depresion_all)</code></pre>
+<pre><code>##   year country_code sex   age c_birth isced value freq hlth_pb unit
+## 1 2014           BE   T TOTAL     NAT  &lt;NA&gt;    NA    A     DPR   PC
+## 2 2019           BE   T TOTAL     NAT  &lt;NA&gt;   8.3    A     DPR   PC
+## 3 2014           BG   T TOTAL     NAT  &lt;NA&gt;   7.9    A     DPR   PC
+## 4 2019           BG   T TOTAL     NAT  &lt;NA&gt;   4.5    A     DPR   PC
+## 5 2014           CZ   T TOTAL     NAT  &lt;NA&gt;   3.2    A     DPR   PC
+## 6 2019           CZ   T TOTAL     NAT  &lt;NA&gt;   4.2    A     DPR   PC</code></pre>
+<pre class="r"><code>print(paste(&quot;Número total de filas en el dataframe combinado:&quot;, nrow(df_depresion_all)))</code></pre>
+<pre><code>## [1] &quot;Número total de filas en el dataframe combinado: 384&quot;</code></pre>
+<pre class="r"><code>str(df_depresion_all)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    384 obs. of  10 variables:
+##  $ year        : num  2014 2019 2014 2019 2014 ...
+##  $ country_code: chr  &quot;BE&quot; &quot;BE&quot; &quot;BG&quot; &quot;BG&quot; ...
+##  $ sex         : chr  &quot;T&quot; &quot;T&quot; &quot;T&quot; &quot;T&quot; ...
+##  $ age         : chr  &quot;TOTAL&quot; &quot;TOTAL&quot; &quot;TOTAL&quot; &quot;TOTAL&quot; ...
+##  $ c_birth     : chr  &quot;NAT&quot; &quot;NAT&quot; &quot;NAT&quot; &quot;NAT&quot; ...
+##  $ isced       : chr  NA NA NA NA ...
+##  $ value       : num  NA 8.3 7.9 4.5 3.2 4.2 6.1 7.9 8.2 8.8 ...
+##  $ freq        : chr  &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...
+##  $ hlth_pb     : chr  &quot;DPR&quot; &quot;DPR&quot; &quot;DPR&quot; &quot;DPR&quot; ...
+##  $ unit        : chr  &quot;PC&quot; &quot;PC&quot; &quot;PC&quot; &quot;PC&quot; ...</code></pre>
+</div>
+<div id="limpieza-y-estandarización-de-df_egresados-y-df_matriculados" class="section level4">
+<h4>4.4.2 Limpieza y estandarización de df_egresados y
+df_matriculados</h4>
+<pre class="r"><code># 1. Limpieza y estandarización de df_egresados (Egresados)
+df_egresados_clean &lt;- df_egresados %&gt;%
+  rename(
+    isced_field = &quot;ISCED Fields of education and training (ISCED-F 2013)&quot;,
+    isced_level = &quot;International Standard Classification of Education (ISCED 2011)&quot;,
+    sex = &quot;Sex&quot;,
+    country_name = &quot;Geopolitical entity (reporting)&quot;,
+    year = &quot;Time&quot;,
+    value = &quot;value&quot;
+  ) %&gt;%
+  
+  # Convertir el año a numérico para evitar conflictos futuros
+  mutate(year = as.numeric(year)) %&gt;%
+  
+  # Estandarizar el nombre de los países a códigos (geo) para la unión
+  mutate(
+    country_code = case_when(
+      country_name == &quot;European Union - 27 countries (from 2020)&quot; ~ &quot;EU27_2020&quot;,
+      country_name == &quot;European Union - 28 countries (2013-2020)&quot; ~ &quot;EU28&quot;,
+      TRUE ~ countrycode(country_name, origin = &#39;country.name&#39;, destination = &#39;eurostat&#39;)
+    )
+  ) %&gt;%
+  
+  # Crear una columna de rama académica simplificada (Clave para los objetivos)
+  mutate(
+    rama_academica = case_when(
+      str_detect(isced_field, &quot;Health and welfare|Veterinary&quot;) ~ &quot;Ciencias de la Salud&quot;,
+      str_detect(isced_field, &quot;Engineering|Manufacturing|Construction&quot;) ~ &quot;Ingeniería&quot;,
+      str_detect(isced_field, &quot;Arts and humanities&quot;) ~ &quot;Artes y Humanidades&quot;,
+      str_detect(isced_field, &quot;Social sciences|Journalism|Information|Business|Administration|Law&quot;) ~ &quot;Ciencias Sociales, Empresariales y Derecho&quot;,
+      str_detect(isced_field, &quot;Natural sciences|Mathematics|Statistics|ICTs&quot;) ~ &quot;Ciencias Naturales y TIC&quot;,
+      str_detect(isced_field, &quot;Education&quot;) ~ &quot;Educación&quot;,
+      str_detect(isced_field, &quot;Services&quot;) ~ &quot;Servicios&quot;,
+      str_detect(isced_field, &quot;Agriculture|Forestry|Fisheries&quot;) ~ &quot;Agricultura&quot;,
+      isced_field == &quot;Total&quot; ~ &quot;Total&quot;,
+      TRUE ~ &quot;Otras&quot; # Para cualquier otra categoría que no se haya mapeado
+    )
+  ) %&gt;%
+  
+  # ordenar y seleccionar las columnas a mantener.
+  select(
+    year, country_code, 
+    sex, isced_level, 
+    isced_field, rama_academica, 
+    value) %&gt;%
+  
+  # Añadimos una columna para identificar el tipo de población
+  mutate(poblacion = &quot;Egresados&quot;)</code></pre>
+<pre><code>## Warning: There was 1 warning in `mutate()`.
+## ℹ In argument: `country_code = case_when(...)`.
+## Caused by warning:
+## ! Some values were not matched unambiguously: European Union - 27 countries (from 2020), European Union - 28 countries (2013-2020)</code></pre>
+<pre class="r"><code># 2. Limpieza y estandarización de df_matriculados (Matriculados)
+# No tenemos la edad pero no pasa nada
+
+df_matriculados_clean &lt;- df_matriculados %&gt;%
+ rename(
+  isced_field = &quot;ISCED Fields of education and training (ISCED-F 2013)&quot;,
+  isced_level = &quot;International Standard Classification of Education (ISCED 2011)&quot;,
+  sex = &quot;Sex&quot;,
+  country_name = &quot;Geopolitical entity (reporting)&quot;,
+  year = &quot;Time&quot;,
+  value = &quot;value&quot;
+ ) %&gt;%
+  
+  # Convertir el año a numérico para evitar futuros problemas
+  mutate(year = as.numeric(year)) %&gt;%
+  # Estandarizar el nombre de los países a códigos (geo) para la unión
+  mutate(
+    country_code = case_when(
+      country_name == &quot;European Union - 27 countries (from 2020)&quot; ~ &quot;EU27_2020&quot;,
+      country_name == &quot;European Union - 28 countries (2013-2020)&quot; ~ &quot;EU28&quot;,
+      TRUE ~ countrycode(country_name, origin = &#39;country.name&#39;, destination = &#39;eurostat&#39;)
+    )
+  ) %&gt;%
+  
+  mutate(
+  rama_academica = case_when(
+   str_detect(isced_field, &quot;Health and welfare|Veterinary&quot;) ~ &quot;Ciencias de la Salud&quot;,
+   str_detect(isced_field, &quot;Engineering|Manufacturing|Construction&quot;) ~ &quot;Ingeniería&quot;,
+   str_detect(isced_field, &quot;Arts and humanities&quot;) ~ &quot;Artes y Humanidades&quot;,
+   str_detect(isced_field, &quot;Social sciences|Journalism|Information|Business|Administration|Law&quot;) ~ &quot;Ciencias Sociales, Empresariales y Derecho&quot;,
+   str_detect(isced_field, &quot;Natural sciences|Mathematics|Statistics|ICTs&quot;) ~ &quot;Ciencias Naturales y TIC&quot;,
+   str_detect(isced_field, &quot;Education&quot;) ~ &quot;Educación&quot;,
+   str_detect(isced_field, &quot;Services&quot;) ~ &quot;Servicios&quot;,
+   str_detect(isced_field, &quot;Agriculture|Forestry|Fisheries&quot;) ~ &quot;Agricultura&quot;,
+   isced_field == &quot;Total&quot; ~ &quot;Total&quot;,
+   TRUE ~ &quot;Otras&quot; # Para cualquier otra categoría que no se haya mapeado
+  )
+ ) %&gt;%
+  
+  # ordenar y seleccionar las columnas a mantener.
+  select(year, country_code, 
+         sex, isced_level, 
+         isced_field, rama_academica,
+         value) %&gt;%
+  # Añadimos una columna para identificar el tipo de población
+  mutate(poblacion = &quot;Matriculados&quot;)</code></pre>
+<pre><code>## Warning: There was 1 warning in `mutate()`.
+## ℹ In argument: `country_code = case_when(...)`.
+## Caused by warning:
+## ! Some values were not matched unambiguously: European Union - 27 countries (from 2020), European Union - 28 countries (2013-2020)</code></pre>
+<pre class="r"><code># 3. Aquí quitamos los carácteres especiales de antes
+df_egresados_clean &lt;- df_egresados_clean %&gt;%
+  filter(!country_code %in% c(&quot;EU27_2020&quot;, &quot;EU28&quot;))
+df_matriculados_clean &lt;- df_matriculados_clean %&gt;%
+  filter(!country_code %in% c(&quot;EU27_2020&quot;, &quot;EU28&quot;))
+
+# 4. Mostrar estructura y primeras filas
+print(&quot;Estructura de df_egresados_clean:&quot;)</code></pre>
+<pre><code>## [1] &quot;Estructura de df_egresados_clean:&quot;</code></pre>
+<pre class="r"><code>str(df_egresados_clean)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    2280 obs. of  8 variables:
+##  $ year          : num  2012 2013 2014 2015 2016 ...
+##  $ country_code  : chr  &quot;BE&quot; &quot;BE&quot; &quot;BE&quot; &quot;BE&quot; ...
+##  $ sex           : chr  &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; ...
+##  $ isced_level   : chr  &quot;Tertiary education (levels 5-8)&quot; &quot;Tertiary education (levels 5-8)&quot; &quot;Tertiary education (levels 5-8)&quot; &quot;Tertiary education (levels 5-8)&quot; ...
+##  $ isced_field   : chr  &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; ...
+##  $ rama_academica: chr  &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; ...
+##  $ value         : int  NA 107884 110888 112406 119141 115870 116671 114468 126446 124601 ...
+##  $ poblacion     : chr  &quot;Egresados&quot; &quot;Egresados&quot; &quot;Egresados&quot; &quot;Egresados&quot; ...</code></pre>
+<pre class="r"><code>print(&quot;Primeras filas de df_egresados_clean (Egresados):&quot;)</code></pre>
+<pre><code>## [1] &quot;Primeras filas de df_egresados_clean (Egresados):&quot;</code></pre>
+<pre class="r"><code>head(df_egresados_clean)</code></pre>
+<pre><code>##   year country_code   sex                     isced_level isced_field
+## 1 2012           BE Total Tertiary education (levels 5-8)       Total
+## 2 2013           BE Total Tertiary education (levels 5-8)       Total
+## 3 2014           BE Total Tertiary education (levels 5-8)       Total
+## 4 2015           BE Total Tertiary education (levels 5-8)       Total
+## 5 2016           BE Total Tertiary education (levels 5-8)       Total
+## 6 2017           BE Total Tertiary education (levels 5-8)       Total
+##   rama_academica  value poblacion
+## 1          Total     NA Egresados
+## 2          Total 107884 Egresados
+## 3          Total 110888 Egresados
+## 4          Total 112406 Egresados
+## 5          Total 119141 Egresados
+## 6          Total 115870 Egresados</code></pre>
+<pre class="r"><code>print(&quot;Estructura de df_matriculados_clean:&quot;)</code></pre>
+<pre><code>## [1] &quot;Estructura de df_matriculados_clean:&quot;</code></pre>
+<pre class="r"><code>str(df_matriculados_clean)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    390 obs. of  8 variables:
+##  $ year          : num  2014 2015 2016 2017 2018 ...
+##  $ country_code  : chr  &quot;BE&quot; &quot;BE&quot; &quot;BE&quot; &quot;BE&quot; ...
+##  $ sex           : chr  &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; ...
+##  $ isced_level   : chr  &quot;Tertiary education (levels 5-8)&quot; &quot;Tertiary education (levels 5-8)&quot; &quot;Tertiary education (levels 5-8)&quot; &quot;Tertiary education (levels 5-8)&quot; ...
+##  $ isced_field   : chr  &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; ...
+##  $ rama_academica: chr  &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; &quot;Total&quot; ...
+##  $ value         : int  495910 504745 508270 526760 515530 519212 521201 539777 549399 550999 ...
+##  $ poblacion     : chr  &quot;Matriculados&quot; &quot;Matriculados&quot; &quot;Matriculados&quot; &quot;Matriculados&quot; ...</code></pre>
+<pre class="r"><code>print(&quot;Primeras filas de df_matriculados_clean (Matriculados):&quot;)</code></pre>
+<pre><code>## [1] &quot;Primeras filas de df_matriculados_clean (Matriculados):&quot;</code></pre>
+<pre class="r"><code>head(df_matriculados_clean)</code></pre>
+<pre><code>##   year country_code   sex                     isced_level isced_field
+## 1 2014           BE Total Tertiary education (levels 5-8)       Total
+## 2 2015           BE Total Tertiary education (levels 5-8)       Total
+## 3 2016           BE Total Tertiary education (levels 5-8)       Total
+## 4 2017           BE Total Tertiary education (levels 5-8)       Total
+## 5 2018           BE Total Tertiary education (levels 5-8)       Total
+## 6 2019           BE Total Tertiary education (levels 5-8)       Total
+##   rama_academica  value    poblacion
+## 1          Total 495910 Matriculados
+## 2          Total 504745 Matriculados
+## 3          Total 508270 Matriculados
+## 4          Total 526760 Matriculados
+## 5          Total 515530 Matriculados
+## 6          Total 519212 Matriculados</code></pre>
+</div>
+<div id="limpieza-y-estandarización-de-df_alcohol_clean" class="section level4">
+<h4>4.4.3 Limpieza y estandarización de df_alcohol_clean</h4>
+<p>Se limpian los datos de consumo de alcohol además de unir la
+depresión y el alcohol en un dataset para la futura correlación en el
+objetivo 2.</p>
+<pre class="r"><code>df_alcohol_clean &lt;- df_alcohol %&gt;%
+  rename(
+    year = time,
+    country_code = geo,
+    c_birth = citizen   # equivalente a &quot;country of birth&quot;
+  ) %&gt;%
+  mutate(
+    isced = NA_character_,   # porque alcohol no tiene nivel educativo
+    hlth_pb = &quot;Alcohol consumption&quot;   # Para poder unir con depresión
+  ) %&gt;%
+  select(
+    year, country_code,
+    sex, age,
+    c_birth, isced,
+    value, hlth_pb, unit
+  )
+
+
+# 4. Combinación de los dataframes de salud (Depresión + Alcohol)
+df_salud_all &lt;- bind_rows(df_depresion_all, df_alcohol_clean)
+
+# 5. Eliminamos casos especiales y verificamos la estructura
+df_salud_all &lt;- df_salud_all %&gt;%
+  filter(!country_code %in% c(&quot;EU27_2020&quot;, &quot;EU28&quot;))
+
+print(&quot;Primeras filas del dataframe de SALUD combinado (Depresión + Alcohol):&quot;)</code></pre>
+<pre><code>## [1] &quot;Primeras filas del dataframe de SALUD combinado (Depresión + Alcohol):&quot;</code></pre>
+<pre class="r"><code>head(df_salud_all)</code></pre>
+<pre><code>##   year country_code sex   age c_birth isced value freq hlth_pb unit
+## 1 2014           BE   T TOTAL     NAT  &lt;NA&gt;    NA    A     DPR   PC
+## 2 2019           BE   T TOTAL     NAT  &lt;NA&gt;   8.3    A     DPR   PC
+## 3 2014           BG   T TOTAL     NAT  &lt;NA&gt;   7.9    A     DPR   PC
+## 4 2019           BG   T TOTAL     NAT  &lt;NA&gt;   4.5    A     DPR   PC
+## 5 2014           CZ   T TOTAL     NAT  &lt;NA&gt;   3.2    A     DPR   PC
+## 6 2019           CZ   T TOTAL     NAT  &lt;NA&gt;   4.2    A     DPR   PC</code></pre>
+<pre class="r"><code>print(paste(&quot;Número total de filas en el dataframe combinado:&quot;, nrow(df_salud_all)))</code></pre>
+<pre><code>## [1] &quot;Número total de filas en el dataframe combinado: 694&quot;</code></pre>
+<pre class="r"><code>str(df_salud_all)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    694 obs. of  10 variables:
+##  $ year        : num  2014 2019 2014 2019 2014 ...
+##  $ country_code: chr  &quot;BE&quot; &quot;BE&quot; &quot;BG&quot; &quot;BG&quot; ...
+##  $ sex         : chr  &quot;T&quot; &quot;T&quot; &quot;T&quot; &quot;T&quot; ...
+##  $ age         : chr  &quot;TOTAL&quot; &quot;TOTAL&quot; &quot;TOTAL&quot; &quot;TOTAL&quot; ...
+##  $ c_birth     : chr  &quot;NAT&quot; &quot;NAT&quot; &quot;NAT&quot; &quot;NAT&quot; ...
+##  $ isced       : chr  NA NA NA NA ...
+##  $ value       : num  NA 8.3 7.9 4.5 3.2 4.2 6.1 7.9 8.2 8.8 ...
+##  $ freq        : chr  &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...
+##  $ hlth_pb     : chr  &quot;DPR&quot; &quot;DPR&quot; &quot;DPR&quot; &quot;DPR&quot; ...
+##  $ unit        : chr  &quot;PC&quot; &quot;PC&quot; &quot;PC&quot; &quot;PC&quot; ...</code></pre>
+</div>
 </div>
 </div>
 
