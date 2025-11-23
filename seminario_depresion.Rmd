@@ -567,6 +567,137 @@ plot_correlacion <- ggplot(
 ggplotly(plot_correlacion, tooltip = "text")
 ```
 
+### 5.3 Relación con el Volumen de la Población Universitaria
+El objetivo 3 busca evaluar la correlación entre el volumen total de la población universitaria (suma de matriculados y egresados) de un país y sus tasas medias de depresión y consumo de alcohol.
+
+5.3.1 Cálculo del Volumen Total Universitario por País
+Primero, se calcula el volumen total de estudiantes (matriculados y egresados) por país, sumando los valores de df_egresados_clean y df_matriculados_clean.
+
+```{r}
+# Combinar matriculados y egresados
+df_poblacion_uni_total <- bind_rows(df_egresados_clean, df_matriculados_clean) %>%
+    # Filtrar solo la categoría 'Total' para evitar dobles conteos y obtener el volumen completo
+    filter(isced_field == "Total") %>%
+    # Agrupar por país y sumar los valores (el volumen)
+    group_by(country_code) %>%
+    summarise(
+        volumen_uni_total = sum(value, na.rm = TRUE),
+        .groups = 'drop'
+    ) %>%
+    # Añadir el nombre del país
+    mutate(country_name = countrycode(country_code,
+                                      origin = "eurostat",
+                                      destination = "country.name"))
+
+print("Primeras filas del Volumen Total Universitario:")
+head(df_poblacion_uni_total)
+```
+
+5.3.2 Correlación con la Prevalencia de Depresión
+Se correlaciona el Volumen Total Universitario con la Prevalencia Media de Síntomas Depresivos (df_objetivo1).
+
+```{r}
+# 1. Unir el volumen total con la prevalencia de depresión
+df_correlacion_volumen_depresion <- df_objetivo1 %>%
+    left_join(df_poblacion_uni_total, by = "country_code") %>%
+    select(-country_name.y) %>%
+    rename(country_name = country_name.x) %>%
+    filter(!is.na(prevalencia_media) & !is.na(volumen_uni_total))
+
+# 2. Cálculo de la correlación de Pearson
+cor_test_depresion_volumen <- cor.test(
+    df_correlacion_volumen_depresion$prevalencia_media,
+    df_correlacion_volumen_depresion$volumen_uni_total,
+    method = "pearson"
+)
+
+# Extraer los valores clave
+cor_coef_dep_vol <- round(cor_test_depresion_volumen$estimate, 3)
+p_value_dep_vol <- format.pval(cor_test_depresion_volumen$p.value, digits = 3, eps = 0.001)
+
+print("Resultado de la prueba de correlación (Depresión vs. Volumen Universitario):")
+print(cor_test_depresion_volumen)
+
+# 3. Creación del gráfico de dispersión interactivo
+plot_correlacion_dep_vol <- ggplot(
+    df_correlacion_volumen_depresion,
+    aes(
+        x = volumen_uni_total,
+        y = prevalencia_media,
+        text = paste(
+            "País:", country_name,
+            "<br>Volumen Uni:", format(volumen_uni_total, big.mark = ","),
+            "<br>Depresión:", round(prevalencia_media, 2), "%"
+        )
+    )
+) +
+    geom_point(aes(color = prevalencia_media), size = 3) +
+    geom_smooth(method = "lm", se = FALSE, color = "#595380") +
+    scale_color_gradient(low = "#83D2C5", high = "#595380") +
+    labs(
+        title = paste0("Correlación Depresión vs. Volumen Universitario (r = ", cor_coef_dep_vol, ")"),
+        x = "Volumen Total de Población Universitaria (Matriculados + Egresados)",
+        y = "Prevalencia Media de Síntomas Depresivos (%)",
+        color = "Depresión (%)"
+    ) +
+    scale_x_continuous(labels = scales::comma) +
+    theme_minimal() +
+    theme(legend.position = "none")
+
+ggplotly(plot_correlacion_dep_vol, tooltip = "text")
+```
+5.3.3 Correlación con la Prevalencia de Consumo de Alcohol
+Se correlaciona el Volumen Total Universitario con la Prevalencia Media de Consumo Crónico de Alcohol (df_objetivo1_alcohol).
+```{r}
+# 1. Unir el volumen total con la prevalencia de alcohol
+df_correlacion_volumen_alcohol <- df_objetivo1_alcohol %>%
+    left_join(df_poblacion_uni_total, by = "country_code") %>%
+    select(-country_name.y) %>%
+    rename(country_name = country_name.x) %>%
+    filter(!is.na(prevalencia_media_alcohol) & !is.na(volumen_uni_total))
+
+# 2. Cálculo de la correlación de Pearson
+cor_test_alcohol_volumen <- cor.test(
+    df_correlacion_volumen_alcohol$prevalencia_media_alcohol,
+    df_correlacion_volumen_alcohol$volumen_uni_total,
+    method = "pearson"
+)
+
+# Extraer los valores clave
+cor_coef_alc_vol <- round(cor_test_alcohol_volumen$estimate, 3)
+p_value_alc_vol <- format.pval(cor_test_alcohol_volumen$p.value, digits = 3, eps = 0.001)
+
+print("Resultado de la prueba de correlación (Alcohol vs. Volumen Universitario):")
+print(cor_test_alcohol_volumen)
+
+# 3. Creación del gráfico de dispersión interactivo
+plot_correlacion_alc_vol <- ggplot(
+    df_correlacion_volumen_alcohol,
+    aes(
+        x = volumen_uni_total,
+        y = prevalencia_media_alcohol,
+        text = paste(
+            "País:", country_name,
+            "<br>Volumen Uni:", format(volumen_uni_total, big.mark = ","),
+            "<br>Alcohol:", round(prevalencia_media_alcohol, 2), "%"
+        )
+    )
+) +
+    geom_point(aes(color = prevalencia_media_alcohol), size = 3) +
+    geom_smooth(method = "lm", se = FALSE, color = "#595380") +
+    scale_color_gradient(low = "#89A2B9", high = "#595380") +
+    labs(
+        title = paste0("Correlación Consumo de Alcohol vs. Volumen Universitario (r = ", cor_coef_alc_vol, ")"),
+        x = "Volumen Total de Población Universitaria (Matriculados + Egresados)",
+        y = "Prevalencia Media de Consumo Crónico de Alcohol (%)",
+        color = "Alcohol (%)"
+    ) +
+    scale_x_continuous(labels = scales::comma) +
+    theme_minimal() +
+    theme(legend.position = "none")
+
+ggplotly(plot_correlacion_alc_vol, tooltip = "text")
+```
 
 
 
