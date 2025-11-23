@@ -35,3 +35,13 @@ nrow(df_depresion_all)
 nrow(df_egresados_clean)
 nrow(df_matriculados_clean)
 
+
+
+head(df_depresion_pais_limpia)     
+head(df_depresion_educacion_limpia)
+head(df_egresados_limpia)         
+head(df_matriculados_limpia)       
+head(df_sonidos_limpia)           
+head(df_alcohol_limpia )           
+
+
