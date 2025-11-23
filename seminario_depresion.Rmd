@@ -1,9 +1,11 @@
 ---
 title: "Niveles de Depresión y Consumo de Alcohol en Europa en estudiantes universitarios."
 author: "Margarita Auguzarova - Carlota Mendoza Hurtado"
+bibliography: referencias.bib
+link-citations: true
 output:
-  html_document: # genera HTML
-    toc: true # Tabla de Contenidos (Índice)
+  html_document: 
+    toc: true 
     theme: journal # Estilo visual
 ---
 
@@ -16,13 +18,8 @@ La etapa universitaria suele representarse como un periodo de independencia, des
 
 ### 1.1 Qué se sabe
 
-En varios artículos científicos recientes— y no tan recientes— se ha visto un incremento en la prevalencia de ansiedad y depresión entre estudiantes universitarios.
-Algunos de los artículos recientes que evidencian este crecimiento:
+En varios artículos científicos recientes se ha observado un incremento en la prevalencia de ansiedad y depresión entre estudiantes universitarios. Estudios recientes que evidencian este crecimiento incluyen trabajos sobre estudiantes de enfermería [@liu2024nursing], revisiones sistemáticas en China [@huang2022china], el consumo de alimentos asociado con síntomas depresivos [@silva2023food], y la prevalencia de depresión, ansiedad y estrés en estudiantes universitarios [@almeida2020prevalence].
 
-1. [College nursing students' prevalence of depressive symptoms and associated factors](https://pubmed.ncbi.nlm.nih.gov/41239613/)
-2. [Prevalence of depression among university students in China: a systematic review and meta-analysis](https://pubmed.ncbi.nlm.nih.gov/36458692/)
-3. [Food consumption associated with depression, anxiety and stress in students entering a public university](https://pubmed.ncbi.nlm.nih.gov/39943931/)
-4. [The Prevalence of Depression, Anxiety and Stress and Their Associated Factors in College Students](https://pubmed.ncbi.nlm.nih.gov/32987932/)
 
 *Esta situación, cuando no se atiende adecuadamente, puede derivar en comportamientos de riesgo como el consumo excesivo de alcohol u otras conductas autodestructivas.*
 
@@ -750,4 +747,4 @@ Este estudio, realizado bajo una **perspectiva ecológica** (análisis a nivel d
 3.  **Definición de Variables:** El consumo de alcohol se define como "consumo crónico" y no como "consumo problemático o excesivo", que podría ser una métrica más directamente relacionada con la salud mental.
 
 
-
+# 7. Bibliografia
