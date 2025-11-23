@@ -500,5 +500,73 @@ leaflet(map_data) %>%
   )
 ```
 
+### 5.2 Correlación Conducta-Emocional
+Buscamos determinar si existe una correlación estadísticamente significativa a nivel de país entre la prevalencia de síntomas depresivos y la prevalencia de consumo crónico de alcohol en la población universitaria europea. Para esto, se utilizarán las prevalencias medias por país calculadas en el apartado anterior.
+
+Se unen los dos data frames de prevalencia media por país (df_objetivo1 para depresión y df_objetivo1_alcohol para consumo de alcohol) para crear un único data frame que permita realizar el análisis de correlación.
+
+```{r}
+# 1. Unir los dataframes de prevalencia media
+df_correlacion_depresion_alcohol <- df_objetivo1 %>%
+ left_join(df_objetivo1_alcohol, by = "country_code") %>%
+ # Se elimina la columna redundante de nombre del país de la tabla de alcohol
+ select(-country_name.y) %>%
+ rename(country_name = country_name.x)
+
+# 2. Filtrar los países que tienen datos para ambas variables
+df_correlacion_depresion_alcohol <- df_correlacion_depresion_alcohol %>%
+ filter(!is.na(prevalencia_media) & !is.na(prevalencia_media_alcohol))
+
+# 3. Mostrar la estructura y las primeras filas
+print("Primeras filas del dataframe de Correlación:")
+head(df_correlacion_depresion_alcohol)
+print(paste("Número total de países con datos completos:", nrow(df_correlacion_depresion_alcohol)))
+
+
+# Cálculo de la correlación de Pearson
+cor_test_result <- cor.test(
+ df_correlacion_depresion_alcohol$prevalencia_media,
+ df_correlacion_depresion_alcohol$prevalencia_media_alcohol,
+ method = "pearson"
+)
+
+# Imprimir el resultado de la prueba
+print("Resultado de la prueba de correlación de Pearson:")
+print(cor_test_result)
+
+# Extraer los valores clave
+cor_coef <- round(cor_test_result$estimate, 3)
+p_value <- format.pval(cor_test_result$p.value, digits = 3, eps = 0.001)
+
+
+# Creación del gráfico de dispersión interactivo con línea de tendencia
+plot_correlacion <- ggplot(
+ df_correlacion_depresion_alcohol,
+ aes(
+  x = prevalencia_media,
+  y = prevalencia_media_alcohol,
+  text = paste(
+   "País:", country_name,
+   "<br>Depresión:", round(prevalencia_media, 2), "%",
+   "<br>Alcohol:", round(prevalencia_media_alcohol, 2), "%"
+  )
+ )
+) +
+ geom_point(aes(color = prevalencia_media), size = 3) +
+ geom_smooth(method = "lm", se = FALSE, color = "#595380") + # Línea de tendencia (Regresión Lineal)
+ scale_color_gradient(low = "#83D2C5", high = "#595380") +
+ labs(
+  title = paste0("Correlación Depresión vs. Consumo de Alcohol (r = ", cor_coef, ")"),
+  x = "Prevalencia Media de Síntomas Depresivos (%)",
+  y = "Prevalencia Media de Consumo Crónico de Alcohol (%)",
+  color = "Depresión (%)"
+ ) +
+ theme_minimal() +
+ theme(legend.position = "none")
+
+ggplotly(plot_correlacion, tooltip = "text")
+```
+
+
 
 
