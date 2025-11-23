@@ -12,7 +12,7 @@
 <meta name="author" content="Margarita Auguzarova - Carlota Mendoza Hurtado" />
 
 
-<title>Niveles de Depresión según la Trayectoria Académica en Europa: Análisis de matriculados y egresados.</title>
+<title>Niveles de Depresión y Consumo de Alcohol en Europa en estudiantes universitarios.</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -361,8 +361,8 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Niveles de Depresión según la Trayectoria
-Académica en Europa: Análisis de matriculados y egresados.</h1>
+<h1 class="title toc-ignore">Niveles de Depresión y Consumo de Alcohol
+en Europa en estudiantes universitarios.</h1>
 <h4 class="author">Margarita Auguzarova - Carlota Mendoza Hurtado</h4>
 
 </div>
@@ -389,6 +389,8 @@ paquetes</a></li>
 Obtención de datos</a></li>
 <li><a href="#peque%C3%B1a-visualizaci%C3%B3n-de-los-json" id="toc-pequeña-visualización-de-los-json">4.3 Pequeña visualización de
 los json</a></li>
+<li><a href="#limpieza-y-preparaci%C3%B3n-de-datos." id="toc-limpieza-y-preparación-de-datos.">4.4 Limpieza y preparación de
+datos.</a></li>
 </ul></li>
 </ul>
 </div>
@@ -427,60 +429,55 @@ public university</a></li>
 of Depression, Anxiety and Stress and Their Associated Factors in
 College Students</a></li>
 </ol>
-<p>Aunque se han dado pocos ejemplos, la realidad es que los niveles de
-malestar psicológico han aumentado. Siendo la pandemia de COVID-19, otro
-factor a tener en cuenta.</p>
 <p><em>Esta situación, cuando no se atiende adecuadamente, puede derivar
 en comportamientos de riesgo como el consumo excesivo de alcohol u otras
-conductas autodestructivas</em>.</p>
+conductas autodestructivas.</em></p>
 </div>
 <div id="qué-no-se-sabe" class="section level3">
 <h3>1.2 Qué no se sabe</h3>
 <p>A pesar de la abundantes investigaciones sobre la salud mental,
 persisten preguntas relevantes. En particular, se desconoce hasta qué
-punto factores específicos —como la rama académica elegida o el país
-donde se cursan los estudios— pueden influir en los niveles de depresión
-o ansiedad.</p>
-<p>Estos factores podrían actuar como fuentes adicionales de estrés,
-considerando que las distintas disciplinas presentan demandas y
-estructuras formativas muy diferentes. Asimismo, las condiciones
-socioambientales del país o región (calidad de vida, modelos educativos,
-presión social, características del campus, entre otros aspectos)
-podrían desempeñar un papel importante en la experiencia emocional de
-los estudiantes.</p>
+punto factores específicos —como la estructura educativa de un país—
+pueden influir en los niveles de depresión o conducta.</p>
+<p><em>Aclaración 1: Dada la naturaleza de los datos de Eurostat, este
+estudio adopta una perspectiva ecológica.</em></p>
+<p>Estos factores podrían actuar como fuentes adicionales de estrés ya
+que las condiciones socioambientales del país o región (calidad de vida,
+modelos educativos, presión social, características del campus, entre
+otros aspectos) podrían desempeñar un papel importante en la experiencia
+emocional de los estudiantes.</p>
 <p>Este vacío de conocimiento motiva la necesidad de un análisis más
 desagregado y contextualizado.</p>
-<p><em>Aclaración: Debido al nivel ambicioso de esta investigación, se
+<p><em>Aclaración 2: Debido al nivel ambicioso de esta investigación, se
 ha acortado a un estudio en paises de Europa.</em></p>
 </div>
 </div>
 <div id="objetivo-general" class="section level2">
 <h2>2. Objetivo General</h2>
-<p>Determinar la relación existente entre la rama de estudio (Ciencias
-de la Salud, Ingeniería, Humanidades, Ciencias Sociales, etc.) y los
-niveles de depresión en estudiantes universitarios matriculados y
-egresados en Europa.</p>
+<p>Evaluar la correlación a nivel país entre la prevalencia media de
+síntomas depresivos y el consumo crónico de alcohol en la población
+terciaria europea, explorando su asociación con el volumen total de la
+población universitaria (matriculados y egresados).</p>
 </div>
 <div id="objetivos-específicos" class="section level2">
 <h2>3. Objetivos Específicos</h2>
 <ol style="list-style-type: decimal">
 <li><p><strong>¿Cuál es la prevalencia de depresión general entre los
-estudiantes universiatios europeos? ¿Y los graduados?</strong> Analizar
-y visualizar la prevalencia de depresión en la población universitaria
-europea respecto a variables sociodemográficas. (sexo, edad y
-país)</p></li>
-<li><p><strong>¿Cuáles son las ramas de estudio con mayor/menor número
-de matriculados y egresados en los países analizados? Demanda
-general.</strong> Analizar y visualizar la distribución de los
-estudiantes matriculados y egresados según la rama de estudio, país y
-año.</p></li>
-<li><p><strong>¿Existe una correlación estadísticamente significativa
-entre el número de matriculados/egresados en una rama de estudio y la
-prevalencia de síntomas depresivos a nivel general?¿Y en cada
-país?</strong> Determinar si existe una correlación estadísticamente
-significativa entre la rama de estudio y la salud mental, y evaluar si
-esta relación se ve modificada o amplificada por las variables
-socioambientales.</p></li>
+estudiantes y egresados universiatios europeos? ¿Y de consumo de
+alcohol?</strong> Analizar y visualizar la prevalencia de depresión en
+la población universitaria europea respecto a variables
+sociodemográficas. (2014-2019 ya que eurostat no recoge años
+posteriores). Y de consumo de alcohol.</p></li>
+<li><p><strong>Correlación Conducta-Emocional.</strong> Determinar si
+existe una correlación estadísticamente significativa a nivel país entre
+la prevalencia de síntomas depresivos y la prevalencia de consumo
+crónico de alcohol en esta población.</p></li>
+<li><p><strong>¿Cómo se relaciona el volumen total de la población
+universitaria (suma de matriculados y egresados) de un país con sus
+tasas medias de depresión y consumo de alcohol?</strong> Evaluar la
+correlación entre el volumen total de la población universitaria (suma
+de matriculados y egresados) y las prevalencias de depresión y alcohol
+en cada país.</p></li>
 </ol>
 </div>
 <div id="metodología" class="section level2">
@@ -489,19 +486,22 @@ socioambientales.</p></li>
 <h3>4.1 Cargar paquetes</h3>
 <p>Aquí se recogen todos los paquetes utilizados para la realización de
 la práctica.</p>
-<pre class="r"><code>library(dplyr)
+<pre class="r"><code>library(countrycode)
+library(eurostat)
+library(dplyr)
+library(DT)
+library(ggplot2)
+library(gganimate)
+library(jsonlite)
+library(leaflet)
+library(plotly)
+library(readr)
+library(rjson)
+library(RColorBrewer)
 library(stringr)
 library(shiny)
-library(ggplot2)
-library(plotly)
+library(sf)
 library(tidyr)
-library(countrycode)
-library(DT)
-library(readr)
-library(eurostat)
-library(jsonlite)
-library(rjson)
-library(tidyjson)
 library(tibble)</code></pre>
 </div>
 <div id="obtención-de-datos" class="section level3">
@@ -516,16 +516,22 @@ de estudio.</li>
 <li>Estudiantes matriculados en educación superior según nivel
 educativo, programa de estudios, sexo y edad.</li>
 </ol>
-<pre class="r"><code>df_depresion_pais &lt;- jsonlite::fromJSON(&quot;OUTPUT/JSON_Planos/DepresionPais_flat.json&quot;)
+<pre class="r"><code># Debido a que los datos obtenidos en eurostat estaban anidados, se ha decidido hacer un .R para poder desanidar los datos y crear .json no anidados, evitando así tener que realizar la transformación cada vez que se realiza un knit. Ahorrando tiempo y espacio.
+df_depresion_pais &lt;- jsonlite::fromJSON(&quot;OUTPUT/JSON_Planos/DepresionPais_flat.json&quot;)
 df_depresion_edu &lt;- jsonlite::fromJSON(&quot;OUTPUT/JSON_Planos/DepresionEducacion_flat.json&quot;)
 df_egresados &lt;- jsonlite::fromJSON(&quot;OUTPUT/JSON_Planos/Egresados_flat.json&quot;)
-df_matriculados &lt;- jsonlite::fromJSON(&quot;OUTPUT/JSON_Planos/Matriculados_flat.json&quot;)</code></pre>
+df_matriculados &lt;- jsonlite::fromJSON(&quot;OUTPUT/JSON_Planos/Matriculados_flat.json&quot;)
+df_alcohol &lt;- jsonlite::fromJSON(&quot;OUTPUT/JSON_Planos/Alcohol_flat.json&quot;)</code></pre>
 </div>
 <div id="pequeña-visualización-de-los-json" class="section level3">
 <h3>4.3 Pequeña visualización de los json</h3>
-<p>El código a ejecutar se encuentra en ‘visulización.R’ ya que es
-sobretodo una comprobación de las cargas json. No se ha añadido en .Rmd
-debido al ser prescindible y ocupar demasiado espacio.</p>
+<p>En ‘visulización.R’ se encuentran códigos cortos que enseñan pequeñas
+previas sobre como se encuentran los bases de datos que hemos cargado.
+Como no es algo especialmente relevante, no se va a poner en el
+.Rmd.</p>
+</div>
+<div id="limpieza-y-preparación-de-datos." class="section level3">
+<h3>4.4 Limpieza y preparación de datos.</h3>
 </div>
 </div>
 
