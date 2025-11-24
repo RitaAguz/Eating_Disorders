@@ -1,4 +1,4 @@
-![Texto alternativo]([(https://github.com/RitaAguz/Niveles_depresion/blob/main/INPUT/ubulogo.png)])
+![Texto alternativo](https://github.com/RitaAguz/Niveles_depresion/blob/main/INPUT/ubulogo.png)
 # Seminario 3 - Niveles de Depresión y Consumo de Alcohol en Europa en estudiantes universitarios.
 ## Autores
 Margarita Aguzarova y Carlota Mendoza Hurtado
