@@ -1,3 +1,4 @@
+![Texto alternativo](https://cursos.com/wp-content/uploads/2019/06/universidad-burgos-750x307.jpg)
 # Seminario 3 - Niveles de Depresión y Consumo de Alcohol en Europa en estudiantes universitarios.
 ## Autores
 Margarita Aguzarova y Carlota Mendoza Hurtado
